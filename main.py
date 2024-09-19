@@ -1,6 +1,8 @@
 from confluent_kafka import Consumer
 import os
 
+# LOOOOOOOOOOOOOOOL
+
 # broker = os.getenv('KAFKA_BROKER', 'localhost:9092')
 broker = '127.0.0.1:9092'
 
