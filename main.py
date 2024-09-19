@@ -1,15 +1,16 @@
 from confluent_kafka import Consumer
 import os
 
-# LOOOOOOOOOOOOOOOL
 
-# broker = os.getenv('KAFKA_BROKER', 'localhost:9092')
-broker = '127.0.0.1:9092'
+broker = os.getenv('KAFKA_BROKER', 'kafka:9092')
 
 # Конфигурация Kafka Consumer
-# producer = Consumer({'bootstrap.servers': broker})
-
-consumer = Consumer({'bootstrap.servers': broker, 'group.id': 'kafka-celery-worker-consumer',})
+consumer = Consumer({
+    'bootstrap.servers': broker,
+    'group.id': 'kafka-celery-worker-consumer',
+    'auto.offset.reset': 'earliest',  # Чтобы начинать с самого начала при первом запуске
+    'enable.auto.commit': True        # Чтобы автоматически подтверждать обработку сообщений
+})
 
 topic = "save-new-pool-to-db"
 consumer.subscribe([topic])
@@ -20,13 +21,17 @@ try:
         msg = consumer.poll(1.0)
         if msg is None:
             continue
-        # print('LOL')
-        print(msg.value().decode('utf-8'))
+        if msg.error():
+            print(f"Error: {msg.error()}")
+            continue
+        print(f"Received message: {msg.value().decode('utf-8')}")
+except KeyboardInterrupt:
+    print("Interrupted by user")
 except Exception as err:
-    print(err)
+    print(f"Error: {err}")
+finally:
+    consumer.close()
 
-for message in consumer.consume():
-    print(f"Consumer received message: {message.value.decode()}")
 
 
 
