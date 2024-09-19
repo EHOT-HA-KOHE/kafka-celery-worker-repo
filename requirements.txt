@@ -1,0 +1,6 @@
+confluent-kafka~=2.5.3
+loguru~=0.7.2
+psycopg2~=2.9.9
+celery==5.4.0
+redis==5.0.8
+kombu==5.4.0
