@@ -8,6 +8,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - app_network
 
   kafka:
     image: confluentinc/cp-kafka:7.2.1
@@ -21,6 +23,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+    networks:
+      - app_network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -32,13 +36,38 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - app_network
 
-  blockchain-listener:
-    build:
-      context: .  # Указываем, что Dockerfile находится в текущей директории
+  redis:
+    image: redis/redis-stack:latest
+    restart: always
+#        env_file:
+#          - environments/redis.env
+    ports:
+        - '6379:6379'
+        - '8001:8001'
+    networks:
+      - app_network
+
+  celery-worker:
+    build: .
+    command: celery -A celery_tasks worker --loglevel=info
     depends_on:
-      - kafka  # Зависимость от Kafka
-    environment:
-      - KAFKA_BROKER=kafka:9092  # Указываем адрес брокера Kafka
-    volumes:
-      - ./logs:/app/logs  # Монтируем директорию для логов
+      - redis
+      - kafka
+
+  # kafka-celery-worker:
+  #   build:
+  #     context: .  # Указываем, что Dockerfile находится в текущей директории
+  #   depends_on:
+  #     - kafka  # Зависимость от Kafka
+  #     - celery-worker  # Зависимость от воркера Celery
+  #   environment:
+  #     - KAFKA_BROKER=kafka:9092  # Указываем адрес брокера Kafka
+  #   volumes:
+  #     - ./logs:/app/logs  # Монтируем директорию для логов
+
+networks:
+  app_network:
+    driver: bridge

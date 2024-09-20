@@ -5,9 +5,10 @@ from dataclasses import dataclass
 
 @dataclass
 class RedisEnv:
-    host: str = os.getenv("REDIS_HOST")
-    port: int = os.getenv("REDIS_PORT")
-    db: int = os.getenv("REDIS_DB")
+    host: str = os.getenv("REDIS_HOST", "localhost")
+    port: int = os.getenv("REDIS_PORT", "6379")
+    db: int = os.getenv("REDIS_DB", "0")
+
 
     def __post_init__(self):
         if not self.host:

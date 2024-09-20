@@ -1,12 +1,12 @@
 from celery import Celery
-
-from src.env import RedisEnv
+from env import RedisEnv
 
 redis_env = RedisEnv()
+
 app = Celery(
     'tasks',
-    broker=redis_env.connect_str,
-    backend=redis_env.connect_str
+    broker=redis_env.connect_str(),
+    backend=redis_env.connect_str()
 )
 
 app.conf.update(
